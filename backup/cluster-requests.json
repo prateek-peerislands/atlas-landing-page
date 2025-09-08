@@ -1,0 +1,70 @@
+[
+  {
+    "id": "req-1754936330674",
+    "clusterName": "Jeffy",
+    "tier": "M10",
+    "state": "FAILED",
+    "progress": 0,
+    "startTime": 1754936330675,
+    "statusMessage": "Atlas API Error: No cluster named 689a340c307ba94b92281ca4 exists in group 688ba44a7f3cd609ef39f683.",
+    "isDataPopulated": false,
+    "dataCollections": [],
+    "clusterId": "689a340c307ba94b92281ca4"
+  },
+  {
+    "id": "req-1754936660143",
+    "clusterName": "Jefferson",
+    "tier": "M10",
+    "state": "FAILED",
+    "progress": 0,
+    "startTime": 1754936660143,
+    "statusMessage": "Atlas API Error: No cluster named 689a35552b1b4e7861d480bb exists in group 688ba44a7f3cd609ef39f683.",
+    "isDataPopulated": false,
+    "dataCollections": [],
+    "clusterId": "689a35552b1b4e7861d480bb"
+  },
+  {
+    "id": "req-1754936848805",
+    "clusterName": "tester",
+    "tier": "M10",
+    "state": "FAILED",
+    "progress": 0,
+    "startTime": 1754936848805,
+    "statusMessage": "Atlas API Error: No cluster named 689a3612ac488160682dc01c exists in group 688ba44a7f3cd609ef39f683.",
+    "isDataPopulated": false,
+    "dataCollections": [],
+    "clusterId": "689a3612ac488160682dc01c"
+  },
+  {
+    "id": "req-1754936898486",
+    "clusterName": "Shiloh",
+    "tier": "M10",
+    "state": "IDLE",
+    "progress": 100,
+    "startTime": 1754936898486,
+    "statusMessage": "Cluster creation completed successfully! 🎉",
+    "isDataPopulated": true,
+    "dataCollections": [
+      "users",
+      "products",
+      "orders",
+      "customers",
+      "transactions"
+    ],
+    "clusterId": "689a3643a8f0904c5639bdde",
+    "actualClusterName": "Shiloh"
+  },
+  {
+    "id": "req-1754937722342",
+    "clusterName": "Shiny",
+    "tier": "M10",
+    "state": "CREATING",
+    "progress": 31,
+    "startTime": 1754937722342,
+    "statusMessage": "Provisioning cloud infrastructure... (120s)",
+    "isDataPopulated": false,
+    "dataCollections": [],
+    "clusterId": "689a397c587e7e556305e1db",
+    "actualClusterName": "Shiny"
+  }
+]

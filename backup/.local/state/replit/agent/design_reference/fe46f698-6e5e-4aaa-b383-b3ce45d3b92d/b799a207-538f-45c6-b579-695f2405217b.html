@@ -1,0 +1,506 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB Atlas - Create M10 Cluster</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'mongodb-green': '#00ED64',
+                        'mongodb-dark': '#001E2B',
+                        'mongodb-blue': '#00344D',
+                        'surface': '#FAFBFC',
+                        'text-primary': '#1C2D38',
+                        'text-secondary': '#5B6C77'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-surface font-inter text-text-primary min-h-screen">
+    <!-- Header -->
+    <header class="bg-mongodb-dark text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-leaf text-mongodb-green text-2xl"></i>
+                    <h1 class="text-xl font-semibold">MongoDB Atlas</h1>
+                </div>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#" class="text-gray-300 hover:text-white transition-colors">Clusters</a>
+                    <a href="#" class="text-gray-300 hover:text-white transition-colors">Database Access</a>
+                    <a href="#" class="text-gray-300 hover:text-white transition-colors">Network Access</a>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-mongodb-green rounded-full flex items-center justify-center">
+                            <span class="text-sm font-medium text-mongodb-dark">U</span>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12 max-w-4xl">
+        <!-- Breadcrumb -->
+        <nav class="mb-8" data-mock="true">
+            <ol class="flex items-center space-x-2 text-sm text-text-secondary">
+                <li><a href="#" class="hover:text-mongodb-green transition-colors">Atlas</a></li>
+                <li><i class="fas fa-chevron-right text-xs"></i></li>
+                <li><a href="#" class="hover:text-mongodb-green transition-colors">Clusters</a></li>
+                <li><i class="fas fa-chevron-right text-xs"></i></li>
+                <li class="text-text-primary font-medium">Create Cluster</li>
+            </ol>
+        </nav>
+
+        <!-- Page Title -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-text-primary mb-2">Deploy a New Cluster</h2>
+            <p class="text-text-secondary">Create a MongoDB Atlas cluster to store and manage your data in the cloud.</p>
+        </div>
+
+        <!-- @COMPONENT: ClusterCreationCard -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div class="p-8">
+                <!-- Card Header -->
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-12 h-12 bg-mongodb-green bg-opacity-10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-server text-mongodb-green text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-text-primary">Create M10 Cluster</h3>
+                        <p class="text-text-secondary">Deploy a production-ready MongoDB cluster</p>
+                    </div>
+                </div>
+
+                <!-- Cluster Tier Info -->
+                <div class="bg-mongodb-green bg-opacity-5 border border-mongodb-green border-opacity-20 rounded-lg p-4 mb-6">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-info-circle text-mongodb-green mt-1"></i>
+                        <div>
+                            <h4 class="font-semibold text-text-primary mb-1">M10 Cluster Specifications</h4>
+                            <ul class="text-sm text-text-secondary space-y-1">
+                                <li>• 2 vCPUs, 2GB RAM</li>
+                                <li>• 10GB storage (expandable)</li>
+                                <li>• Production-ready with replica sets</li>
+                                <li>• Starting at $57/month</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cluster Creation Form -->
+                <form id="clusterForm" class="space-y-6">
+                    <!-- Cluster Name -->
+                    <div>
+                        <label for="clusterName" class="block text-sm font-semibold text-text-primary mb-2">
+                            Cluster Name <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="clusterName" 
+                            name="clusterName"
+                            placeholder="Enter cluster name (e.g., production-cluster)"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mongodb-green focus:border-mongodb-green transition-colors"
+                            required
+                            data-bind="clusterName"
+                        >
+                        <p class="text-xs text-text-secondary mt-1">Must be 1-64 characters, letters, numbers, and hyphens only</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Cloud Provider -->
+                        <div>
+                            <label class="block text-sm font-semibold text-text-primary mb-2">Cloud Provider</label>
+                            <div class="relative">
+                                <div class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-text-secondary cursor-not-allowed">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fab fa-microsoft text-blue-600"></i>
+                                        <span>Microsoft Azure</span>
+                                        <span class="ml-auto text-xs bg-gray-200 px-2 py-1 rounded">Fixed</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-text-secondary mt-1">Cloud provider is pre-configured for this deployment</p>
+                        </div>
+
+                        <!-- Region -->
+                        <div>
+                            <label class="block text-sm font-semibold text-text-primary mb-2">Region</label>
+                            <div class="relative">
+                                <div class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-text-secondary cursor-not-allowed">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-globe text-blue-600"></i>
+                                        <span>Asia Pacific South 2 (ap-south-2)</span>
+                                        <span class="ml-auto text-xs bg-gray-200 px-2 py-1 rounded">Fixed</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-text-secondary mt-1">Region optimized for performance and compliance</p>
+                        </div>
+                    </div>
+
+                    <!-- Estimated Cost -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-semibold text-text-primary">Estimated Monthly Cost</h4>
+                                <p class="text-sm text-text-secondary">M10 cluster on Azure, ap-south-2</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-text-primary">$57.00</div>
+                                <div class="text-sm text-text-secondary">USD per month</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4">
+                        <button 
+                            type="submit" 
+                            id="createClusterBtn"
+                            class="w-full bg-mongodb-green hover:bg-opacity-90 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                            data-event="click:handleSubmit"
+                            data-implementation="Should validate form before submission and call /api/provision endpoint"
+                        >
+                            <span class="flex items-center justify-center space-x-2">
+                                <i class="fas fa-rocket"></i>
+                                <span>Create Cluster</span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: ClusterCreationCard -->
+
+        <!-- Info Cards -->
+        <div class="grid md:grid-cols-3 gap-6 mt-8" data-mock="true">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center space-x-3 mb-3">
+                    <i class="fas fa-shield-alt text-mongodb-green text-xl"></i>
+                    <h4 class="font-semibold">Enterprise Security</h4>
+                </div>
+                <p class="text-sm text-text-secondary">Built-in security features including encryption at rest and in transit, VPC peering, and IP allowlisting.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center space-x-3 mb-3">
+                    <i class="fas fa-chart-line text-mongodb-green text-xl"></i>
+                    <h4 class="font-semibold">Performance Insights</h4>
+                </div>
+                <p class="text-sm text-text-secondary">Real-time performance monitoring with automated index suggestions and query optimization.</p>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center space-x-3 mb-3">
+                    <i class="fas fa-sync-alt text-mongodb-green text-xl"></i>
+                    <h4 class="font-semibold">Automated Backups</h4>
+                </div>
+                <p class="text-sm text-text-secondary">Continuous backups with point-in-time recovery and cross-region backup options.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Modal -->
+    <!-- @COMPONENT: LoadingModal -->
+    <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" data-implementation="Show/hide based on provisioning state">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-8">
+            <div class="text-center">
+                <!-- Loading Icon -->
+                <div class="w-16 h-16 bg-mongodb-green bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-cog text-mongodb-green text-2xl animate-spin"></i>
+                </div>
+
+                <!-- Status Text -->
+                <h3 class="text-xl font-bold text-text-primary mb-2">Provisioning Your Cluster</h3>
+                <p class="text-text-secondary mb-6" data-bind="statusMessage">Setting up your M10 cluster on Azure... Please wait.</p>
+
+                <!-- Progress Bar -->
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm text-text-secondary mb-2">
+                        <span>Progress</span>
+                        <span data-bind="progressPercentage">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div 
+                            id="progressBar"
+                            class="bg-mongodb-green h-3 rounded-full transition-all duration-500 ease-out"
+                            style="width: 0%"
+                            data-bind="progressWidth"
+                        ></div>
+                    </div>
+                </div>
+
+                <!-- Status Steps -->
+                <div class="space-y-3 text-left">
+                    <!-- @MAP: statusSteps.map(step => ( -->
+                    <div class="flex items-center space-x-3" data-mock="true">
+                        <div class="w-6 h-6 bg-mongodb-green rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-white text-xs"></i>
+                        </div>
+                        <span class="text-sm text-text-primary">Validating cluster configuration</span>
+                    </div>
+                    <div class="flex items-center space-x-3" data-mock="true">
+                        <div class="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span class="text-sm text-text-secondary">Provisioning infrastructure</span>
+                    </div>
+                    <div class="flex items-center space-x-3" data-mock="true">
+                        <div class="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span class="text-sm text-text-secondary">Configuring security settings</span>
+                    </div>
+                    <div class="flex items-center space-x-3" data-mock="true">
+                        <div class="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span class="text-sm text-text-secondary">Finalizing deployment</span>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Cancel Button -->
+                <button class="mt-6 px-6 py-2 text-text-secondary border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" data-mock="true">
+                    Cancel Deployment
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: LoadingModal -->
+
+    <!-- Success Modal -->
+    <!-- @COMPONENT: SuccessModal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" data-implementation="Show when cluster is successfully created">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-8">
+            <div class="text-center">
+                <!-- Success Icon -->
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+                </div>
+
+                <!-- Success Message -->
+                <h3 class="text-xl font-bold text-text-primary mb-2">Cluster Created Successfully!</h3>
+                <p class="text-text-secondary mb-6">Your M10 cluster is now ready and available for connections.</p>
+
+                <!-- Cluster Details -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left" data-mock="true">
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-text-secondary">Cluster Name:</span>
+                            <span class="font-medium" data-bind="createdClusterName">production-cluster</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-secondary">Provider:</span>
+                            <span class="font-medium">Microsoft Azure</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-secondary">Region:</span>
+                            <span class="font-medium">ap-south-2</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-secondary">Status:</span>
+                            <span class="text-green-600 font-medium">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button class="w-full bg-mongodb-green hover:bg-opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-colors" data-mock="true">
+                        Connect to Cluster
+                    </button>
+                    <button class="w-full text-text-secondary border border-gray-300 rounded-lg py-3 px-6 hover:bg-gray-50 transition-colors" data-mock="true">
+                        View All Clusters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: SuccessModal -->
+
+    <script>
+        (function() {
+            // DOM elements
+            const form = document.getElementById('clusterForm');
+            const createBtn = document.getElementById('createClusterBtn');
+            const loadingModal = document.getElementById('loadingModal');
+            const successModal = document.getElementById('successModal');
+            const progressBar = document.getElementById('progressBar');
+
+            let provisioningInterval;
+            let currentProgress = 0;
+
+            // Form validation
+            function validateForm() {
+                const clusterName = document.getElementById('clusterName').value.trim();
+                
+                if (!clusterName) {
+                    alert('Please enter a cluster name');
+                    return false;
+                }
+                
+                if (!/^[a-zA-Z0-9-]+$/.test(clusterName) || clusterName.length > 64) {
+                    alert('Cluster name must contain only letters, numbers, and hyphens (max 64 characters)');
+                    return false;
+                }
+                
+                return true;
+            }
+
+            // Show loading modal with progress simulation
+            function showLoadingModal() {
+                loadingModal.classList.remove('hidden');
+                loadingModal.classList.add('flex');
+                currentProgress = 0;
+                updateProgress();
+                
+                // Simulate progress updates
+                provisioningInterval = setInterval(() => {
+                    if (currentProgress < 100) {
+                        currentProgress += Math.random() * 15; // Random progress increment
+                        if (currentProgress > 100) currentProgress = 100;
+                        updateProgress();
+                        
+                        if (currentProgress >= 100) {
+                            setTimeout(() => {
+                                hideLoadingModal();
+                                showSuccessModal();
+                            }, 1000);
+                        }
+                    }
+                }, 800);
+            }
+
+            // Update progress bar and percentage
+            function updateProgress() {
+                const percentage = Math.floor(currentProgress);
+                progressBar.style.width = percentage + '%';
+                
+                const percentageElement = document.querySelector('[data-bind="progressPercentage"]');
+                if (percentageElement) {
+                    percentageElement.textContent = percentage + '%';
+                }
+                
+                // Update status message based on progress
+                const statusMessage = document.querySelector('[data-bind="statusMessage"]');
+                if (statusMessage) {
+                    if (percentage < 25) {
+                        statusMessage.textContent = 'Validating cluster configuration...';
+                    } else if (percentage < 50) {
+                        statusMessage.textContent = 'Provisioning infrastructure on Azure...';
+                    } else if (percentage < 75) {
+                        statusMessage.textContent = 'Configuring security settings...';
+                    } else if (percentage < 100) {
+                        statusMessage.textContent = 'Finalizing deployment...';
+                    } else {
+                        statusMessage.textContent = 'Cluster deployment complete!';
+                    }
+                }
+            }
+
+            function hideLoadingModal() {
+                loadingModal.classList.add('hidden');
+                loadingModal.classList.remove('flex');
+                if (provisioningInterval) {
+                    clearInterval(provisioningInterval);
+                }
+            }
+
+            function showSuccessModal() {
+                successModal.classList.remove('hidden');
+                successModal.classList.add('flex');
+                
+                // Update cluster name in success modal
+                const clusterNameElement = document.querySelector('[data-bind="createdClusterName"]');
+                if (clusterNameElement) {
+                    clusterNameElement.textContent = document.getElementById('clusterName').value;
+                }
+            }
+
+            // Form submission handler
+            function handleSubmit(e) {
+                e.preventDefault();
+                
+                if (!validateForm()) {
+                    return;
+                }
+
+                // Disable the form
+                createBtn.disabled = true;
+                createBtn.innerHTML = '<span class="flex items-center justify-center space-x-2"><i class="fas fa-spinner animate-spin"></i><span>Creating...</span></span>';
+
+                // TODO: Implement API call to /api/provision endpoint
+                // const clusterData = {
+                //     name: document.getElementById('clusterName').value,
+                //     provider: 'azure',
+                //     region: 'ap-south-2',
+                //     tier: 'M10'
+                // };
+
+                // Simulate API delay
+                setTimeout(() => {
+                    showLoadingModal();
+                }, 500);
+            }
+
+            // Event listeners
+            form.addEventListener('submit', handleSubmit);
+
+            // Close modals when clicking outside
+            [loadingModal, successModal].forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                        
+                        // Reset form if closing loading modal
+                        if (modal === loadingModal) {
+                            createBtn.disabled = false;
+                            createBtn.innerHTML = '<span class="flex items-center justify-center space-x-2"><i class="fas fa-rocket"></i><span>Create Cluster</span></span>';
+                            if (provisioningInterval) {
+                                clearInterval(provisioningInterval);
+                            }
+                        }
+                    }
+                });
+            });
+
+            // TODO: Implement real-time status polling
+            // function pollStatus(requestId) {
+            //     const statusInterval = setInterval(async () => {
+            //         try {
+            //             const response = await fetch(`/api/status?id=${requestId}`);
+            //             const data = await response.json();
+            //             
+            //             updateProgress(data.percentage);
+            //             
+            //             if (data.status === 'completed') {
+            //                 clearInterval(statusInterval);
+            //                 hideLoadingModal();
+            //                 showSuccessModal();
+            //             } else if (data.status === 'failed') {
+            //                 clearInterval(statusInterval);
+            //                 hideLoadingModal();
+            //                 alert('Cluster creation failed: ' + data.error);
+            //             }
+            //         } catch (error) {
+            //             console.error('Error polling status:', error);
+            //         }
+            //     }, 2000);
+            // }
+        })();
+    </script>
+</body>
+</html>

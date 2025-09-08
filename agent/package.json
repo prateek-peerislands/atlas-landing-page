@@ -1,0 +1,28 @@
+{
+  "name": "atlas-migration-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "start:pg-mcp": "node dist/mcp/postgres-mcp-server.js",
+    "start:mongo-mcp": "node dist/mcp/mongo-data-mcp-server.js",
+    "dev:pg-mcp": "tsx src/mcp/postgres-mcp-server.ts",
+    "dev:mongo-mcp": "tsx src/mcp/mongo-data-mcp-server.ts",
+    "dev:agent": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.58.1",
+    "pg": "^8.12.0",
+    "mongodb": "^6.8.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.15.7",
+    "typescript": "^5.5.4"
+  }
+}
+
