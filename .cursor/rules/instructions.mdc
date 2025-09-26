@@ -1,0 +1,32 @@
+---
+alwaysApply: true
+---
+
+# MongoDB Atlas MCP Server Rules
+
+- Never create a new MongoDB Atlas cluster without explicit user permission.  
+  - Applies to all scenarios (testing, staging, production, or experimentation).  
+  - No default cluster creation.  
+  - Always prompt and require approval before provisioning.  
+
+- Prevent all operations that may incur additional costs (e.g., scaling, enabling backups, creating additional nodes/regions) unless explicitly overridden by the user.  
+
+- Disallow destructive operations by default (e.g., cluster deletion, dropping databases, dropping collections, user removals) unless explicitly confirmed.  
+
+- No automatic failover or network peering changes without informing the user of risks and costs.  
+
+- When suggesting changes, always highlight:  
+  - Potential cost impact  
+  - Potential downtime impact  
+  - Potential data loss risk  
+
+- Never auto-resolve issues, tickets, or incidents related to MongoDB clusters. User confirmation required.  
+
+- PR review mandatory for repo-based MongoDB IaC (if applied via Terraform/Atlas API). No direct merges.  
+
+# Git & General Rules
+- Never push `.env`, secrets, or sensitive config files into repos.  
+- No force pushes, tag deletions, or irreversible VCS operations.  
+- No `rm -rf` operations. Use recoverable deletes (`rm -r`) with caution.  
+- Always prefer non-disruptive fixes; if risky, propose alternatives before execution.  
+- Prevent rebasing.

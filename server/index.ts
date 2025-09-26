@@ -155,9 +155,16 @@ app.use((req, res, next) => {
   // Proxy endpoint for cluster creation to MCP server
   app.post('/api/create-cluster', async (req, res) => {
     try {
-      const { clusterName } = req.body;
+      const { clusterName, tier = 'M10' } = req.body;
       
-      // Forward request to MCP server
+      if (!clusterName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cluster name is required'
+        });
+      }
+      
+      // Forward request to MCP server (region and provider are hardcoded)
       const mcpResponse = await fetch('http://localhost:3001/create-cluster', {
         method: 'POST',
         headers: {
@@ -165,9 +172,7 @@ app.use((req, res, next) => {
         },
         body: JSON.stringify({
           clusterName: clusterName,
-          cloudProvider: "AWS",
-          region: "US_EAST_1",
-          tier: "M10"
+          tier: tier
         })
       });
 
@@ -196,6 +201,10 @@ app.use((req, res, next) => {
         }
       });
 
+      if (mcpResponse.status === 404) {
+        // If MCP says not found, propagate 404 so UI can treat as deleted
+        return res.status(404).json({ success: false, message: 'Request not found (deleted)' });
+      }
       const result = await mcpResponse.json();
       res.json(result);
     } catch (error: any) {
@@ -211,7 +220,7 @@ app.use((req, res, next) => {
   // Proxy endpoint for populate data to MCP server
   app.post('/api/populate-data', async (req, res) => {
     try {
-      const { clusterName, requestId } = req.body;
+      const { clusterName, requestId, dbName, collectionName, connectionString } = req.body;
       
       // Forward request to MCP server
       const mcpResponse = await fetch('http://localhost:3001/api/populate-data', {
@@ -219,7 +228,7 @@ app.use((req, res, next) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ clusterName, requestId })
+        body: JSON.stringify({ clusterName, requestId, dbName, collectionName, connectionString })
       });
 
       const result = await mcpResponse.json();
@@ -237,7 +246,7 @@ app.use((req, res, next) => {
   // Proxy endpoint for view data to MCP server
   app.post('/api/view-data', async (req, res) => {
     try {
-      const { clusterName, requestId } = req.body;
+      const { clusterName, requestId, dbName, collectionName, connectionString } = req.body;
       
       // Forward request to MCP server
       const mcpResponse = await fetch('http://localhost:3001/api/view-data', {
@@ -245,7 +254,7 @@ app.use((req, res, next) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ clusterName, requestId })
+        body: JSON.stringify({ clusterName, requestId, dbName, collectionName, connectionString })
       });
 
       const result = await mcpResponse.json();
@@ -255,6 +264,122 @@ app.use((req, res, next) => {
       res.status(500).json({
         success: false,
         message: 'Failed to communicate with MCP server',
+        error: error.message
+      });
+    }
+  });
+
+  // Proxy endpoint to stop/terminate an in-progress cluster via MCP server
+  app.post('/api/stop-cluster', async (req, res) => {
+    try {
+      const { requestId, comment, clusterName } = req.body || {};
+      if (!requestId) {
+        return res.status(400).json({
+          success: false,
+          message: 'requestId is required'
+        });
+      }
+
+      console.log('[PROXY /api/stop-cluster] incoming', { requestId, clusterName, comment });
+      const mcpResponse = await fetch('http://localhost:3001/api/stop-cluster', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId, comment, clusterName })
+      });
+
+      const result = await mcpResponse.json().catch(() => ({}));
+      console.log('[PROXY /api/stop-cluster] MCP response', mcpResponse.status, result);
+      if (!mcpResponse.ok) {
+        return res.status(mcpResponse.status).json(result);
+      }
+      res.json(result);
+    } catch (error: any) {
+      console.error('Proxy stop-cluster failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to proxy stop-cluster', error: error.message });
+    }
+  });
+
+  // Proxy endpoint to delete cluster by name (no requestId) via MCP server
+  app.post('/api/delete-cluster-by-name', async (req, res) => {
+    try {
+      const { clusterName } = req.body || {};
+      if (!clusterName) {
+        return res.status(400).json({ success: false, message: 'clusterName is required' });
+      }
+      const mcpResponse = await fetch('http://localhost:3001/api/delete-cluster-by-name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clusterName })
+      });
+      const result = await mcpResponse.json().catch(() => ({}));
+      if (!mcpResponse.ok) {
+        return res.status(mcpResponse.status).json(result);
+      }
+      res.json(result);
+    } catch (error: any) {
+      console.error('Proxy delete-cluster-by-name failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to proxy delete-cluster-by-name', error: error.message });
+    }
+  });
+  // Proxy endpoint to stop/terminate an in-progress cluster via MCP server
+  app.post('/api/stop-cluster', async (req, res) => {
+    try {
+      const { requestId } = req.body || {};
+      if (!requestId) {
+        return res.status(400).json({
+          success: false,
+          message: 'requestId is required'
+        });
+      }
+
+      // Forward request to MCP server
+      const mcpResponse = await fetch('http://localhost:3001/api/stop-cluster', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ requestId })
+      });
+
+      const result = await mcpResponse.json();
+      res.json(result);
+    } catch (error: any) {
+      console.error('Proxy to MCP server failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to communicate with MCP server',
+        error: error.message
+      });
+    }
+  });
+
+  // AI-powered cluster tier suggestion endpoint
+  app.post('/api/suggest-cluster-tier', async (req, res) => {
+    try {
+      const { requirements } = req.body;
+      
+      if (!requirements) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Requirements are required' 
+        });
+      }
+
+      // Import the AI agent function
+      const { suggestClusterTier } = await import('../agent/dist/index.js');
+      
+      // Get AI suggestion
+      const suggestion = await suggestClusterTier(requirements);
+      
+      res.json({
+        success: true,
+        suggestion
+      });
+    } catch (error: any) {
+      console.error('Cluster tier suggestion error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate cluster tier suggestion',
         error: error.message
       });
     }

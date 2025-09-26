@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import Home from "@/pages/home";
 import Migration from "@/pages/migration";
+import DatabaseManagement from "@/pages/database-management";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -11,6 +12,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/migration" component={Migration} />
+      <Route path="/database-management" component={DatabaseManagement} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -101,7 +101,7 @@ export default function DataViewModal({ isOpen, onClose, clusterName, data }: Da
       case 'completed':
         return 'bg-green-100 text-green-800';
       case 'shipped':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-green-100 text-green-800';
       case 'processing':
         return 'bg-yellow-100 text-yellow-800';
       case 'pending':
@@ -233,7 +233,7 @@ export default function DataViewModal({ isOpen, onClose, clusterName, data }: Da
                           <p className="text-gray-500 text-sm">{customer.phone}</p>
                           <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
                             <span>Address: {customer.address}</span>
-                            <span className="font-semibold text-blue-600">Points: {customer.loyaltyPoints}</span>
+                            <span className="font-semibold text-green-600">Points: {customer.loyaltyPoints}</span>
                           </div>
                         </div>
                         <Badge variant="secondary" className="text-xs">

@@ -31,7 +31,7 @@ export default function SuccessModal({ clusterName, onClose }: SuccessModalProps
               <div className="flex justify-between">
                 <span className="text-text-secondary">Provider:</span>
                 <span className="font-medium flex items-center space-x-1">
-                  <FaMicrosoft className="text-blue-600" />
+                  <FaMicrosoft className="text-green-600" />
                   <span>Microsoft Azure</span>
                 </span>
               </div>

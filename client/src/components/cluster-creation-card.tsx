@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
-import { Server, Info, Rocket, Loader2, Database, Eye, CheckCircle } from "lucide-react";
+import { Server, Info, Rocket, Loader2, Database, Eye, CheckCircle, Brain, Sparkles } from "lucide-react";
 import { FaMicrosoft } from "react-icons/fa";
 import { Globe } from "lucide-react";
 import DataViewModal from "./data-view-modal";
+import RequirementsForm, { DeveloperRequirements } from "./requirements-form";
+import AISuggestionDisplay, { ClusterTierSuggestion } from "./ai-suggestion-display";
 
 // MCP Server configuration
 const MCP_SERVER_URL = 'http://localhost:3001';
@@ -28,13 +30,18 @@ export default function ClusterCreationCard() {
   const [clusterData, setClusterData] = useState<any>(null);
   const [isRestoringState, setIsRestoringState] = useState(false);
   const [isClusterCompleted, setIsClusterCompleted] = useState(false);
-  const [dbConnectionString, setDbConnectionString] = useState('');
+  // Connection string will be auto-generated
   const [dbName, setDbName] = useState('');
   const [collectionName, setCollectionName] = useState('');
   const [preference, setPreference] = useState<'regular' | 'timeseries' | 'clustered'>('regular');
   const [timeField, setTimeField] = useState('ts');
   const [metaField, setMetaField] = useState('meta');
   const [clusteredKey, setClusteredKey] = useState('email');
+  
+  // AI Suggestion states
+  const [showAISuggestion, setShowAISuggestion] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<ClusterTierSuggestion | null>(null);
+  const [isGettingSuggestion, setIsGettingSuggestion] = useState(false);
   
 
   const form = useForm<InsertClusterRequest>({
@@ -217,7 +224,7 @@ export default function ClusterCreationCard() {
       
       toast({
         title: "Cluster creation completed! 🎉",
-        description: "Your MongoDB cluster is now ready for use. You can now populate and view data.",
+        description: `Your MongoDB cluster is now ready for use. ${clusterStatus?.auditingEnabled ? '🔍 Database auditing is enabled - all actions will be logged.' : '🔍 Database auditing setup in progress...'} You can now populate and view data.`,
       });
     }
   }, [clusterStatus, isProvisioning, toast]);
@@ -304,7 +311,7 @@ export default function ClusterCreationCard() {
       const response = await fetch(`${MCP_SERVER_URL}/api/populate-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clusterName, requestId: provisioningRequestId, connectionString: dbConnectionString, dbName, collectionName })
+        body: JSON.stringify({ clusterName, requestId: provisioningRequestId, dbName, collectionName })
       });
       if (!response.ok) throw new Error('Failed to populate data');
       return response.json();
@@ -332,7 +339,7 @@ export default function ClusterCreationCard() {
       const response = await fetch(`${MCP_SERVER_URL}/api/view-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clusterName, requestId: provisioningRequestId, connectionString: dbConnectionString, dbName, collectionName })
+        body: JSON.stringify({ clusterName, requestId: provisioningRequestId, dbName, collectionName })
       });
       if (!response.ok) throw new Error('Failed to retrieve data');
       return response.json();
@@ -359,6 +366,59 @@ export default function ClusterCreationCard() {
     provisionMutation.mutate(data);
   };
 
+  // AI Suggestion functions
+  const handleGetAISuggestion = async (requirements: DeveloperRequirements) => {
+    setIsGettingSuggestion(true);
+    
+    try {
+      const response = await fetch('/api/suggest-cluster-tier', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requirements }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setAiSuggestion(data.suggestion);
+        setShowAISuggestion(true);
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to get AI suggestion",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error getting AI suggestion:', error);
+      toast({
+        title: "Error",
+        description: "Failed to connect to AI service",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGettingSuggestion(false);
+    }
+  };
+
+  const handleAcceptAISuggestion = () => {
+    if (aiSuggestion) {
+      form.setValue('tier', aiSuggestion.tier as any);
+      setShowAISuggestion(false);
+      toast({
+        title: "AI Suggestion Applied",
+        description: `Selected ${aiSuggestion.tier} tier based on AI recommendation`,
+      });
+    }
+  };
+
+  const handleDismissAISuggestion = () => {
+    setShowAISuggestion(false);
+    setAiSuggestion(null);
+  };
+
   return (
     <Card className="bg-white shadow-lg border border-gray-200 overflow-hidden">
       <CardContent className="p-8">
@@ -380,9 +440,27 @@ export default function ClusterCreationCard() {
 
         {/* Cluster Tier Selection */}
         <div className="mb-6">
-          <Label className="block text-sm font-semibold text-text-primary mb-3">
-            Cluster Tier <span className="text-red-500">*</span>
-          </Label>
+          <div className="flex items-center justify-between mb-3">
+            <Label className="block text-sm font-semibold text-text-primary">
+              Cluster Tier <span className="text-red-500">*</span>
+            </Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAISuggestion(true)}
+              disabled={isProvisioning || isGettingSuggestion}
+              className="flex items-center gap-2 text-green-600 border-green-200 hover:bg-green-50"
+            >
+              {isGettingSuggestion ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Brain className="h-4 w-4" />
+              )}
+              <Sparkles className="h-3 w-3" />
+              AI Suggest
+            </Button>
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="relative">
               <input
@@ -500,8 +578,8 @@ export default function ClusterCreationCard() {
                 <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                   {/* State Restoration Indicator */}
                   {isRestoringState && (
-                    <div className="mb-3 p-2 bg-blue-50 rounded border border-blue-200">
-                      <div className="flex items-center justify-center space-x-2 text-blue-700 text-xs">
+                    <div className="mb-3 p-2 bg-green-50 rounded border border-green-200">
+                      <div className="flex items-center justify-center space-x-2 text-green-700 text-xs">
                         <Loader2 className="animate-spin w-3 h-3" />
                         <span>Restoring cluster state from previous session...</span>
                       </div>
@@ -519,6 +597,25 @@ export default function ClusterCreationCard() {
                   <p className="text-xs text-text-secondary text-center">
                     {clusterStatus?.statusMessage || "Initializing cluster creation..."}
                   </p>
+                  
+                  {/* Auditing Status Indicator */}
+                  {clusterStatus?.auditingStatus && (
+                    <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+                      <div className="flex items-center justify-center space-x-2 text-green-700 text-xs">
+                        {clusterStatus.auditingEnabled ? (
+                          <>
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span>🔍 Database Auditing: {clusterStatus.auditingStatus}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Loader2 className="animate-spin w-3 h-3" />
+                            <span>🔍 Setting up Database Auditing...</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -559,10 +656,7 @@ export default function ClusterCreationCard() {
             
             <div className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <Label>Connection String (mongodb+srv)</Label>
-                  <Input placeholder="mongodb+srv://user:pass@cluster.mongodb.net/" value={dbConnectionString} onChange={(e) => setDbConnectionString(e.target.value)} />
-                </div>
+                {/* Connection string is auto-generated */}
                 <div>
                   <Label>Database Name</Label>
                   <Input placeholder="app" value={dbName} onChange={(e) => setDbName(e.target.value)} />
@@ -600,9 +694,30 @@ export default function ClusterCreationCard() {
                 <div className="sm:col-span-2">
                   <Button
                     onClick={async () => {
-                      if (!dbConnectionString || !dbName || !collectionName) return;
+                      if (!dbName || !collectionName) return;
+                      
+                      // Get real connection string from cluster request
+                      let connectionString = '';
+                      try {
+                        const response = await fetch(`${MCP_SERVER_URL}/api/cluster-status?id=${provisioningRequestId}`);
+                        if (response.ok) {
+                          const clusterData = await response.json();
+                          if (clusterData.mongoClusterUri) {
+                            connectionString = `${clusterData.mongoClusterUri}${dbName}`;
+                          }
+                        }
+                      } catch (error) {
+                        console.warn('Failed to get cluster connection string, using fallback:', error);
+                      }
+                      
+                      // Fallback if we couldn't get the real connection string
+                      if (!connectionString) {
+                        // Let the MCP server handle connection string generation with proper credentials
+                        connectionString = `mongodb+srv://PLACEHOLDER_USER:PLACEHOLDER_PASS@${clusterName}.atlasuniqueidentifier.mongodb.net/${dbName}`;
+                      }
+                      
                       const payload: any = {
-                        connectionString: dbConnectionString,
+                        connectionString,
                         dbName,
                         collectionName,
                         preference,
@@ -633,7 +748,7 @@ export default function ClusterCreationCard() {
                     }}
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
                   >
-                    Create Database & Collection (via MCP)
+                    Create Database & Collection
                   </Button>
                 </div>
               </div>
@@ -656,7 +771,7 @@ export default function ClusterCreationCard() {
                 ) : (
                   <span className="flex items-center justify-center space-x-2">
                     <Database />
-                    <span>Populate Sample Data (via MCP)</span>
+                    <span>Populate Sample Data</span>
                   </span>
                 )}
               </Button>
@@ -675,7 +790,7 @@ export default function ClusterCreationCard() {
                 ) : (
                   <span className="flex items-center justify-center space-x-2">
                     <Eye />
-                    <span>View Data (via MCP)</span>
+                    <span>View Data</span>
                   </span>
                 )}
               </Button>
@@ -711,6 +826,46 @@ export default function ClusterCreationCard() {
           clusterName={clusterName}
           data={clusterData}
         />
+      )}
+
+      {/* AI Suggestion Modal */}
+      {showAISuggestion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-green-600" />
+                  AI Cluster Tier Suggestion
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDismissAISuggestion}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <RequirementsForm
+                onSubmit={handleGetAISuggestion}
+                isLoading={isGettingSuggestion}
+              />
+              
+              {aiSuggestion && (
+                <div className="mt-6">
+                  <AISuggestionDisplay
+                    suggestion={aiSuggestion}
+                    onAccept={handleAcceptAISuggestion}
+                    onBack={handleDismissAISuggestion}
+                    isLoading={false}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </Card>
   );

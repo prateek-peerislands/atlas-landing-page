@@ -33,8 +33,100 @@ async function listToolsForLlm(client: McpClient): Promise<ToolDef[]> {
   }));
 }
 
+export async function suggestClusterTier(requirements: any) {
+  const openai = new OpenAI({ 
+    apiKey: process.env.AZURE_OPENAI_API_KEY,
+    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`,
+    defaultQuery: { 'api-version': '2024-02-15-preview' },
+    defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY }
+  });
+
+  const systemPrompt = `You are an expert MongoDB Atlas cluster tier recommendation system. 
+  Analyze the developer's requirements and suggest the optimal cluster tier based on:
+  - Environment type (production/development/testing)
+  - Data volume expectations
+  - Concurrent user count
+  - Query complexity
+  - Performance requirements
+  - Geographic region
+  - Backup and security needs
+
+  Available MongoDB Atlas cluster tiers (ACTUALLY VALID in Atlas API):
+  - M10: 2 vCPUs, 2GB RAM, 10GB storage - $57/month (Development, small apps) - Azure
+  - M20: 2 vCPUs, 4GB RAM, 20GB storage - $147/month (Medium applications) - Azure  
+  - M30: 2 vCPUs, 8GB RAM, 40GB storage - $388/month (Production, high traffic) - Azure
+
+  Respond with a JSON object containing:
+  {
+    "tier": "M20",
+    "name": "Medium",
+    "vcpus": 4,
+    "ram": 8,
+    "storage": "20 GB",
+    "reasoning": ["Reason 1", "Reason 2", "Reason 3"],
+    "confidence": 85,
+    "estimatedCost": "$25/month",
+    "features": ["Feature 1", "Feature 2", "Feature 3"]
+  }`;
+
+  const userPrompt = `Analyze these requirements and suggest the optimal MongoDB Atlas cluster tier:
+  Environment: ${requirements.environment}
+  Data Volume: ${requirements.dataVolume}
+  Concurrent Users: ${requirements.concurrentUsers}
+  Query Complexity: ${requirements.queryComplexity}
+  Performance Requirements: ${requirements.performanceRequirements}
+  Geographic Region: ${requirements.geographicRegion || 'Not specified'}`;
+
+  const response = await openai.chat.completions.create({
+    model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4o',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ],
+    temperature: 0.3
+  });
+
+  const content = response.choices[0].message.content;
+  console.log('Azure OpenAI response content:', content);
+  
+  try {
+    // Handle markdown code blocks (```json ... ```)
+    let jsonContent = content || '{}';
+    if (jsonContent.includes('```json')) {
+      const jsonMatch = jsonContent.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonContent = jsonMatch[1];
+      }
+    }
+    
+    const parsed = JSON.parse(jsonContent);
+    console.log('Parsed JSON:', parsed);
+    return parsed;
+  } catch (error) {
+    console.log('JSON parsing error:', error);
+    console.log('Raw content:', content);
+    // Fallback if JSON parsing fails
+    return {
+      tier: 'M20',
+      name: 'Medium',
+      vcpus: 2,
+      ram: 4,
+      storage: '20 GB',
+      reasoning: ['AI analysis completed but response format was unexpected'],
+      confidence: 70,
+      estimatedCost: '$146.72/month',
+      features: ['Standard MongoDB Atlas features']
+    };
+  }
+}
+
 export async function askMigrationAgent(prompt: string) {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ 
+    apiKey: process.env.AZURE_OPENAI_API_KEY,
+    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_NAME}`,
+    defaultQuery: { 'api-version': '2024-02-15-preview' },
+    defaultHeaders: { 'api-key': process.env.AZURE_OPENAI_API_KEY }
+  });
 
   const mongodbUri = process.env.MONGODB_URI;
   const postgresUrl = process.env.POSTGRES_URL;
@@ -67,7 +159,7 @@ export async function askMigrationAgent(prompt: string) {
 
   for (let step = 0; step < 8; step++) {
     const res = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      model: process.env.AZURE_OPENAI_DEPLOYMENT_NAME || 'gpt-4o',
       messages,
       tools
     } as any);
